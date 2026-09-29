@@ -1,0 +1,388 @@
+{
+  "name": "Website Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1296,
+        -224
+      ],
+      "id": "e8664b1f-46b0-40f6-bd68-0e5f11ec87dc",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { url: \"https://jsonplaceholder.typicode.com/posts/1\" } },\n  { json: { url: \"https://example.com\" } },\n  { json: { url: \"https://this-site-does-not-exist-xyz123.com\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        -224
+      ],
+      "id": "fbf40bca-01d1-4d0c-a9d7-e85e972facbd",
+      "name": "Website List"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -848,
+        -224
+      ],
+      "id": "981c2a7e-1eb8-489c-962b-55c2f9ee4679",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b882cd45-9684-4c59-a557-e2c5cd9c21f6",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -624,
+        -336
+      ],
+      "id": "45805d4e-bcc7-4d56-8ea7-cb474b60d384",
+      "name": "Is 200?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3f07ca37-4315-435b-bc06-669495840857",
+              "name": "status_message",
+              "value": "=✅ {{ $('Website List').item.json.url }} سالمه (کد: {{ $json.statusCode }})",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -368,
+        -448
+      ],
+      "id": "8d1c4701-6c3c-4bdb-8d82-f03e70b53e9a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2053fb4-fe50-4ce9-a2bd-1594b117a1e2",
+              "name": "status_message",
+              "value": "={{ $('Website List').item.json.url }} مشکل داره (کد: {{ $json.statusCode }})",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -368,
+        -224
+      ],
+      "id": "15357daf-7139-49d8-9d5a-87bf53e3102e",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "62d0cc4e-bf9b-46c2-8aab-a3c1b83ea85b",
+              "name": "status_message",
+              "value": "={{ $('Website List').item.json.url }} در دسترس نیست: {{ $json.error.message || $json.error }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "7c68fdeb-0c81-4586-8165-c7627ed2bc3f",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        16,
+        -240
+      ],
+      "id": "95059c52-8959-46d8-952d-1a0becf91668",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lines = $input.all().map(item => item.json.status_message.trim());\nconst hasProblem = lines.some(line => !line.startsWith('✅'));\n\nreturn [{\n  json: {\n    report: lines.join('\\n'),\n    has_problem: hasProblem\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -224
+      ],
+      "id": "8420afd8-1377-43fa-b018-4e936b48627c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eabf0011-687f-4362-897d-1f27d7e02611",
+              "leftValue": "={{ $json.has_problem }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -224
+      ],
+      "id": "01fde5b9-c3eb-4d61-a4e8-f4582aa8cba5",
+      "name": "Has Problem?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://tapi.bale.ai/YOUR_BALE_TOKEN/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "your Bale chat bot id"
+            },
+            {
+              "name": "text",
+              "value": "=📊 گزارش وضعیت سایت‌ها:\n\n{{ $json.report }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        704,
+        -320
+      ],
+      "id": "bde2f4c5-0664-444e-ad54-06604b976838",
+      "name": "Send to Bale"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Website List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Website List": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Is 200?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is 200?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Has Problem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Problem?": {
+      "main": [
+        [
+          {
+            "node": "Send to Bale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b479199b-1234-4594-9fc6-4fcf4568bae8",
+  "meta": {
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "nodeGroups": [],
+  "id": "TR0WXUswVpVN2Qh1",
+  "tags": []
+}
