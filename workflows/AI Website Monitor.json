@@ -1,0 +1,471 @@
+{
+  "name": "AI Website Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1440,
+        -272
+      ],
+      "id": "5612f113-71e4-466c-b444-26a7d3a35aea",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { url: \"https://jsonplaceholder.typicode.com/posts/1\" } },\n  { json: { url: \"https://example.com\" } },\n  { json: { url: \"https://this-site-does-not-exist-xyz123.com\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        -272
+      ],
+      "id": "0ea31728-5348-4197-9e23-ebe2560262d2",
+      "name": "Website List"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1072,
+        -272
+      ],
+      "id": "c8b389c0-c0b6-43a2-9fa9-5956b3be9c61",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b882cd45-9684-4c59-a557-e2c5cd9c21f6",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -880,
+        -368
+      ],
+      "id": "f522b1f0-55cd-4e19-929b-b8401c23773e",
+      "name": "Is 200?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3f07ca37-4315-435b-bc06-669495840857",
+              "name": "status_message",
+              "value": "=✅ {{ $('Website List').item.json.url }} سالمه (کد: {{ $json.statusCode }})",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -704,
+        -448
+      ],
+      "id": "ddbce11e-c4d1-45ec-9696-be58dec5404d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2053fb4-fe50-4ce9-a2bd-1594b117a1e2",
+              "name": "status_message",
+              "value": "={{ $('Website List').item.json.url }} مشکل داره (کد: {{ $json.statusCode }})",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -704,
+        -272
+      ],
+      "id": "2efdc0b3-8b04-486a-8ae2-980ef98b54ec",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "62d0cc4e-bf9b-46c2-8aab-a3c1b83ea85b",
+              "name": "status_message",
+              "value": "={{ $('Website List').item.json.url }} در دسترس نیست: {{ $json.error.message || $json.error }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -704,
+        -112
+      ],
+      "id": "bacad84e-a6ea-476e-8b11-c0a1cd78bfe9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -464,
+        -288
+      ],
+      "id": "50830f78-fee2-4919-b8d7-b46acd143e44",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eabf0011-687f-4362-897d-1f27d7e02611",
+              "leftValue": "={{ $json.has_problem }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        -272
+      ],
+      "id": "3e40cff9-d854-4af8-ad31-0eaa50f8d3bc",
+      "name": "Has Problem?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://tapi.bale.ai/[YOURE_BALE_BOT_TOKEN]/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "your Bale bot chat id"
+            },
+            {
+              "name": "text",
+              "value": "=📊 گزارش وضعیت سایت‌ها:\n\n{{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        -528
+      ],
+      "id": "a2f5375b-2379-4876-9ef2-c848a81bcbab",
+      "name": "Send to Bale"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lines = $input.all().map(item => item.json.status_message.trim());\nconst hasProblem = lines.some(line => !line.startsWith('✅'));\n\nreturn [{\n  json: {\n    report: lines.join('\\n'),\n    has_problem: hasProblem\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -272
+      ],
+      "id": "5a18dae9-bf34-4f1a-897c-b959d5bb8d44",
+      "name": "Build Report"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=   این گزارش وضعیت چند سایت است. یک خلاصه کوتاه، دوستانه و فارسی از وضعیت کلی بنویس (حداکثر ۲ خط):\n\n   {{ $json.report }}",
+        "options": {
+          "systemMessage": "تو یک دستیار مانیتورینگ سایت هستی که خلاصه های کوتاه و دقیق فارسی می نویسی."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        112,
+        -528
+      ],
+      "id": "d4031eb6-fcff-4652-ba8c-789693aca6de",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -336
+      ],
+      "id": "17d625c5-6b84-4061-aa8f-33bae8c42bb8",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "26iwozLnRNDiSgfZ",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -144
+      ],
+      "id": "72dd74d5-ae5c-4264-a4b5-4a27094a944c",
+      "name": "No Operation, do nothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Website List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Website List": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Is 200?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is 200?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Build Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Problem?": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Report": {
+      "main": [
+        [
+          {
+            "node": "Has Problem?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send to Bale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "87b22d0f-930d-47f2-9091-51452d2b2917",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "nodeGroups": [],
+  "id": "K5NlKM3NoBPQ0nuY",
+  "tags": []
+}
