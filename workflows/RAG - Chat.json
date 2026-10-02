@@ -1,0 +1,184 @@
+{
+  "name": "RAG - Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -624,
+        -112
+      ],
+      "id": "f330c974-d1ed-402e-908c-ec85c308f229",
+      "name": "When chat message received",
+      "webhookId": "8d6d1428-54f0-4447-b44a-e3abd6d5fd6b"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "تو دستیار مستندات n8n هستی. برای هر سؤال، اول با ابزار جستجو در مستندات بگرد و فقط بر اساس نتیجه‌ی آن به فارسی و کوتاه جواب بده. اگر جواب در نتیجه‌ی جستجو نبود، صادقانه بگو «در مستندات پیدا نکردم» و حدس نزن."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -336,
+        -112
+      ],
+      "id": "fb34a1d4-7288-4758-9764-d86b8afe4092",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "18070947-6d10-4388-9ee4-1d4de3ff85ae",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "26iwozLnRNDiSgfZ",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        128
+      ],
+      "id": "0bdc82e0-8004-4167-9d68-7776ba8a3dbb",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "برای جستجو در مستندات n8n استفاده می‌شود. هر وقت کاربر درباره‌ی n8n، نودها یا workflow ها سؤال کرد، از این ابزار استفاده کن.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "n8n_docs",
+          "mode": "list",
+          "cachedResultName": "n8n_docs"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        128
+      ],
+      "id": "e382e9d9-9a3f-42a8-900c-528459e7f07e",
+      "name": "n8n_docs_search",
+      "credentials": {
+        "qdrantApi": {
+          "id": "OxrAcKEOAmE5pBnh",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "bge-m3:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        336
+      ],
+      "id": "b5bec39e-f2a4-4d6d-b24c-f373177c6918",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "26iwozLnRNDiSgfZ",
+          "name": "Ollama account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n_docs_search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "n8n_docs_search",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "34b00b5f-e56a-4dc8-bb61-945429c6e56c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "nodeGroups": [],
+  "id": "3Ck603xber9AH6th",
+  "tags": []
+}
