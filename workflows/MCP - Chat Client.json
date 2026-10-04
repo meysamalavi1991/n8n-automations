@@ -1,0 +1,142 @@
+{
+  "name": "MCP - Chat Client",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -624,
+        -112
+      ],
+      "id": "52cdc0e5-8407-4145-99da-439153cf812b",
+      "name": "When chat message received",
+      "webhookId": "b83b038e-7664-44f5-985e-5796d30b51f9"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "تو دستیار مستندات n8n هستی. برای هر سؤال، اول ابزار search_n8n_docs را صدا بزن. نتیجه‌ی ابزار یک JSON است و متن اصلی در فیلد pageContent قرار دارد. آن متن را بخوان و جواب را از روی آن، به فارسی و کوتاه بنویس. فقط وقتی بگو «در مستندات پیدا نکردم» که متن pageContent هیچ ربطی به سؤال نداشته باشد."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -336,
+        -112
+      ],
+      "id": "0786fc8b-4364-4f4f-8d57-c82fd8201903",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {
+          "numCtx": 4096
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "698e3291-fe8e-4f93-8e76-ba072555e038",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "26iwozLnRNDiSgfZ",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        128
+      ],
+      "id": "5329434c-7708-4e28-849f-c41c2fe17d6c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://n8n:5678/mcp/docs",
+        "serverTransport": "sse",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        -144,
+        128
+      ],
+      "id": "16260fbf-a8a8-477f-bb1b-fe3e3be296ea",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2eb4431a-b2e9-446a-9d2c-047a524ca0f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "nodeGroups": [],
+  "id": "tULe8pKrURjx295C",
+  "tags": []
+}
